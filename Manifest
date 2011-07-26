@@ -14,5 +14,5 @@ lib/migrator/importer.rb
 lib/outcome_importer.rb
 lib/reception_importer.rb
 lib/vitals_importer.rb
-spec/migrator_spec.rb
+spec/encounter_exporter_spec.rb
 spec/spec_helper.rb

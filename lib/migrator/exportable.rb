@@ -31,18 +31,11 @@ module Migrator
       end
     end
 
-    # Get all headers using forms (INCOMPLETE!)
-    def headers_by_forms
-      @forms = @type.forms rescue nil
-      @default_fields + @forms.first.fields.all(
-          :order => 'field_number'
-        ).map(&:concept).map(&:name)
-    end
-
     # List of all headers including the default ones
     def headers
       fields = @default_fields + self.header_concepts.map(&:name)
-      if @type.name == 'Give drugs'
+      encounter_type = EncounterType.find(@type_id)
+      if encounter_type.name == 'Give drugs'
         fields += self.header_drugs.map(&:name)
       end
 
@@ -54,11 +47,12 @@ module Migrator
       unless @_header_concepts
         @_header_concepts = Observation.all(
           :joins => [:encounter, :concept],
-          :conditions => ['encounter_type = ?', @type.id],
+          :conditions => ['encounter_type = ?', @type_id],
           :group => 'concept.concept_id',
           :order => 'concept.concept_id').map(&:concept)
 
-        if @type.name == 'HIV Staging'
+        encounter_type = EncounterType.find(@type_id)
+        if encounter_type.name == 'HIV Staging'
           @_header_concepts << Concept.find_by_name('Reason antiretrovirals started')
         end
       end
@@ -70,7 +64,7 @@ module Migrator
       DrugOrder.all(
         :joins => 'INNER JOIN orders USING(order_id)
                    INNER JOIN encounter USING(encounter_id)',
-        :conditions => ['encounter_type = ?', @type.id],
+        :conditions => ['encounter_type = ?', @type_id],
         :group => 'drug_order.drug_inventory_id',
         :order => 'drug_order.drug_inventory_id'
       ).map(&:drug)
@@ -145,7 +139,8 @@ module Migrator
         end
       end
       # Export drug orders for Give drugs encounters
-      if @type.name == 'Give drugs'
+      encounter_type = EncounterType.find(@type_id)
+      if encounter_type.name == 'Give drugs'
         # order.voided, order.voided_by, order.date.voided
         # drug_order.drug_inventory_id, drug_order.quantity
         orders = Order.all(
@@ -175,11 +170,12 @@ module Migrator
     # Export encounters of given type to csv
     def to_csv(out_file=nil)
       init_headers
-      out_file = self.to_filename(@type.name) + '.csv' unless out_file
+      encounter_type = EncounterType.find(@type_id)
+      out_file = self.to_filename(encounter_type.name) + '.csv' unless out_file
       out_file = @csv_dir + out_file
       FasterCSV.open(out_file, 'w',:headers => self.headers) do |csv|
         csv << self.headers
-        Encounter.all(:conditions => ['encounter_type = ?', @type.id],
+        Encounter.all(:conditions => ['encounter_type = ?', @type_id],
                       :limit => @limit, :order => 'encounter_id').each do |e|
           csv << self.row(e)
         end
