@@ -5,6 +5,7 @@
 module Migrator
   module Exportable
 
+    # Initialize CSV headers
     def init_headers
       @_header_concepts = nil
       concepts = self.header_concepts
@@ -19,7 +20,8 @@ module Migrator
       end
 
     end
-    # Dump concepts to CSV
+    
+    # Dump all used concepts to CSV
     # headers: old_concept_id, new_concept_id, old_concept_name
     def dump_concepts(file='concept_map.csv')
       FasterCSV.open(@csv_dir + file, 'w',
@@ -46,7 +48,8 @@ module Migrator
     def header_concepts
       unless @_header_concepts
         @_header_concepts = Observation.all(
-          :joins => [:encounter, :concept],
+          :joins => 'INNER JOIN encounter USING(encounter_id)
+                     INNER JOIN concept USING(concept_id)',
           :conditions => ['encounter_type = ?', @type_id],
           :group => 'concept.concept_id',
           :order => 'concept.concept_id').map(&:concept)
@@ -57,6 +60,13 @@ module Migrator
         end
       end
       @_header_concepts
+    end
+
+    # New concept ids for this encounter type
+    def new_header_ids
+      self.header_concepts.map do |c|
+        @concept_map[c.concept_id.to_s].to_i
+      end if @concept_map
     end
 
     # Get all drugs dispensed in all drug orders
@@ -70,14 +80,7 @@ module Migrator
       ).map(&:drug)
     end
 
-    # New concept ids for this encounter type
-    def new_header_ids
-      self.header_concepts.map do |c|
-        @concept_map[c.concept_id.to_s].to_i
-      end if @concept_map
-    end
-
-    # Get value of given observation
+    # Get value of the given +Observation+
     def obs_value(obs)
       return obs.attributes.collect{|name,value|
         next if value.nil? or value == "" or name !~ /value/
@@ -86,7 +89,8 @@ module Migrator
 
     end
 
-    #cloned from obs_value, I hope that this solves the Art Visit issue I am experiencing
+    # Get value of the given +Observation+ with each valued labeled by
+    # attribute name. Used when exporting ART Visit
     def obs_value_art_visit(obs)
       return obs.attributes.collect{|name,value|
         next if value.nil? or value == "" or name !~ /value/
@@ -173,15 +177,25 @@ module Migrator
       encounter_type = EncounterType.find(@type_id)
       out_file = self.to_filename(encounter_type.name) + '.csv' unless out_file
       out_file = @csv_dir + out_file
+      condition_options = []
+      
+      if @patient_list == nil
+        condition_options = ['encounter_type = ?', @type_id]
+      else
+        condition_options = ['encounter_type = ? AND patient_id IN (?)', @type_id, @patient_list]
+      end
+      
       FasterCSV.open(out_file, 'w',:headers => self.headers) do |csv|
         csv << self.headers
-        Encounter.all(:conditions => ['encounter_type = ?', @type_id],
-                      :limit => @limit, :order => 'encounter_id').each do |e|
+        Encounter.all(:conditions => condition_options,
+                      :order => 'encounter_id').each do |e|
           csv << self.row(e)
         end
       end
     end
 
+    # Convert string to standard file name
+    # Strips out spaces and converts to lower case
     def to_filename(name)
       name.downcase.gsub(/[\/:\s]/, '_')
     end
