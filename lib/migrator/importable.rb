@@ -1,9 +1,11 @@
 # Import patient visits into BART2
+#
+#
 
 module Migrator
   module Importable
-    # Post to BART 2
 
+    # Get params for encounter attributes
     def init_params(enc_row, type_name)
       enc_params = {}
       enc_params['encounter'] = {}
@@ -14,7 +16,7 @@ module Migrator
       # encounter params
       enc_params['encounter']['patient_id'] = enc_row['patient_id']
       enc_params['encounter']['encounter_type_name'] = type_name
-      enc_params['encounter']['provider_id'] = 1 # User.find(enc_row['provider_id']).person.person_id
+      enc_params['encounter']['provider_id'] = 1 #User.find(enc_row['provider_id']).person.person_id
       enc_params['encounter']['encounter_datetime'] = enc_row['encounter_datetime']
 
       enc_params
@@ -33,9 +35,10 @@ module Migrator
           end
         end
       end
-
     end
 
+    # Load all drugs mapped +file+
+    # Default +file+ is +@csv_dir/drug_map.csv+
     def load_drugs(file='drug_map.csv')
       @drug_map = {}
       @drug_name_map = {}
