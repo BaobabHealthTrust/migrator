@@ -2,7 +2,7 @@
 module Migrator
   class Importer
 
-    attr_reader :forms, :type, :default_fields, :header_col, :csv_dir,
+    attr_reader :default_fields, :header_col, :csv_dir,
                 :concept_map, :concept_name_map, :bart_url, :csv_file
 
     include Migrator::Importable
