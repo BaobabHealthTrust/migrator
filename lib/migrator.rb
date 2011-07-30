@@ -13,8 +13,10 @@ require 'art_visit_importer'
 require 'outcome_importer'
 require 'dispensation_importer'
 
-#m = EncounterExporter.new('/tmp/migrate', 6)
-#m.to_csv
-
+#= Migrator
+#
+# Tool for migrator data from BART 1 to BART 2
+#
 module Migrator
+
 end
