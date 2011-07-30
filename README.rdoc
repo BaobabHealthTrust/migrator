@@ -1,22 +1,23 @@
-= migrator
+= Migrator
 
 Migrate BART patient visit information via CSV files
 
 == Install
 
-gem install baobabhealthtrust-migrator --source http://gems.github.com
+  gem install baobabhealthtrust-migrator --source http://gems.github.com
 
 == Usage
 
 Export/Import data to/from CSV files from BART 1
 
-To export from old version HIV Reception (assuming we have /tmp/migrate/concept_map.csv):
+To export from old version HIV Reception (assuming we have
+/tmp/migrate/concept_map.csv):
 
-> m = Migrator.new('/tmp/migrate', 6)
-> m.to_csv
+  exporter = EncounterExporter.new('/tmp/migrate', 6)
+  exporter.to_csv
 
 
 To Import in new version
 
-> m = Migrator.new('/tmp/migrate')
-> m.create_encounters('hiv_reception.csv', 'username:password@locahost:3000')
+  importer = ReceptionImporter.new('/tmp/migrate')
+  importer.create_encounters('hiv_reception.csv', 'username:password@localhost:3000')

@@ -2,7 +2,7 @@ require 'rubygems'
 require 'rake'
 require 'echoe'
 
-Echoe.new('migrator', '0.1.0') do |p|
+Echoe.new('migrator', '0.1.1') do |p|
   p.summary    = 'BART Migrator'
   p.description    = 'Migrate BART patient visit information'
   p.url            = 'http://github.com/baobabhealthtrust/migrator'
