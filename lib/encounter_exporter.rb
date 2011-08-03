@@ -4,11 +4,11 @@ require 'migrator/exportable'
 
 class EncounterExporter
 
-  attr_reader :forms, :type_id, :default_fields, :header_col, :limit, :csv_dir, :patient_list
+  attr_reader :forms, :type_id, :default_fields, :header_col, :limit, :csv_dir, :patient_list, :export_dir
 
   include Migrator::Exportable
 
-  def initialize(csv_dir, encounter_type_id=nil, limit=10, patient_list=nil)
+  def initialize(csv_dir, encounter_type_id=nil, limit=10, patient_list=nil, export_dir=nil)
     @default_fields = ['patient_id', 'encounter_id', 'workstation',
                        'date_created', 'encounter_datetime', 'provider_id',
                        'voided', 'voided_by', 'date_voided', 'void_reason'
@@ -19,6 +19,7 @@ class EncounterExporter
     @csv_dir = csv_dir + '/'
     @limit = limit
     @patient_list = patient_list
+    @export_dir = export_dir
 
     @type_id = encounter_type_id #EncounterType.find(encounter_type_id) #rescue nil
     @header_col = {}
