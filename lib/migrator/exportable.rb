@@ -176,7 +176,7 @@ module Migrator
       init_headers
       encounter_type = EncounterType.find(@type_id)
       out_file = self.to_filename(encounter_type.name) + '.csv' unless out_file
-      out_file = @csv_dir + out_file
+      out_file = @export_dir + out_file
       condition_options = []
       
       if @patient_list == nil
