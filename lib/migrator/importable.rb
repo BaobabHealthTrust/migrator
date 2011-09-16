@@ -27,7 +27,7 @@ module Migrator
     def load_concepts(file='concept_map.csv')
       @concept_map = {}
       @concept_name_map = {}
-      FasterCSV.foreach(@csv_dir + file, :headers => true) do |row|
+      FasterCSV.foreach(@mapping_file_path + file, :headers => true) do |row|
         unless @concept_map[row['old_concept_id']]
           @concept_map[row['old_concept_id']] = row['new_concept_id']
           if row['old_concept_name']
@@ -44,7 +44,7 @@ module Migrator
       @drug_name_map = {}
       @drug_oldid_newname_map = {} #mapping old drug ids, to new Drug Names
       @drug_oldid_newid_map = {}
-      FasterCSV.foreach(@csv_dir + file, :headers => true) do |row|
+      FasterCSV.foreach(@mapping_file_path + file, :headers => true) do |row|
         unless @drug_map[row['drug_id']]
           @drug_map[row['drug_id']] = row['new_drug_id']
           if row['bart_one_name']
@@ -77,13 +77,13 @@ module Migrator
     end
 
     def post_params(post_action, enc_params, bart_url)
-      begin
+      #begin
         RestClient.post("http://#{bart_url}/#{post_action}",
                         enc_params)
-      rescue Exception => e
-        raise "Migrator: Error while importing encounter #{e.message}"
-        @logger.warn("Migrator: Error while importing encounter")
-      end
+      #rescue Exception => e
+      #  raise "Migrator: Error while importing encounter #{e.message}"
+      #  @logger.warn("Migrator: Error while importing encounter")
+      #end
     end
 
   end
