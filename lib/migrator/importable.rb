@@ -16,7 +16,10 @@ module Migrator
       # encounter params
       enc_params['encounter']['patient_id'] = enc_row['patient_id']
       enc_params['encounter']['encounter_type_name'] = type_name
-      enc_params['encounter']['provider_id'] = 1 #User.find(enc_row['provider_id']).person.person_id
+
+      # Include retired users
+      enc_params['encounter']['provider_id'] = User.find_with_voided(
+        enc_row['provider_id']).person.person_id rescue 1 
       enc_params['encounter']['encounter_datetime'] = enc_row['encounter_datetime']
 
       enc_params
