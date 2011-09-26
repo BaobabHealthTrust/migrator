@@ -6,7 +6,6 @@ class VitalsImporter < Migrator::Importer
     type_name = 'Vitals'
     enc_params = init_params(enc_row, type_name)
 
-
     obs_headers.each do |question|
 
       next unless enc_row[question]
@@ -30,12 +29,10 @@ class VitalsImporter < Migrator::Importer
       enc_params['observations[]'] << quest_params
     end
 
-    #raise @currentHeight.to_yaml
-    #raise @currentWeight.to_yaml
     @patient = Patient.find(enc_row['patient_id'])
     if @patient.person.age.to_i < 15 #obs_headers.include?'Paediatric growth indicators' #calculate paediatric growth indicators
-     age_in_months = @patient.person.age_in_months #To be substituted with the patient real age in months @patient.age_in_months
-     gender = @patient.person.gender #To be substituted with the patients real gender
+     age_in_months = @patient.person.age_in_months
+     gender = @patient.person.gender
      medianweightheight = WeightHeightForAge.median_weight_height(age_in_months, gender).join(',') #rescue nil
      currentweightpercentile = (@currentWeight/(medianweightheight[0])*100).round(0)
      currentheightpercentile = (@currentHeight/(medianweightheight[1])*100).round(0)

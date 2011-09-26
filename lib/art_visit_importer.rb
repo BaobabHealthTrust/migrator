@@ -10,10 +10,17 @@ class ArtVisitImporter < Migrator::Importer
     adverse_effects_array = []
     prescription_params_array = []
     # initialise an array of symptoms as in Bart 2
-    concepts_array = ['ABDOMINAL PAIN','ANOREXIA','COUGH','DIARRHEA','FEVER','ANEMIA','LACTIC ACIDOSIS','LIPODYSTROPHY','SKIN RASH','OTHER SYMPTOMS']
+    concepts_array = ['ABDOMINAL PAIN', 'ANOREXIA', 'COUGH','DIARRHEA','FEVER',
+                      'ANEMIA', 'LACTIC ACIDOSIS', 'LIPODYSTROPHY', 'SKIN RASH',
+                      'OTHER SYMPTOMS']
     effects_array = ['SKIN RASH','PERIPHERAL NEUROPATHY']
-    exceptional_concepts_array = ['Prescription time period', 'Prescribe Cotrimoxazole (CPT)', 'Prescribe Insecticide Treated Net (ITN)',
-            'Prescribe recommended dosage', 'Stavudine dosage', 'Provider shown patient BMI','Prescribed dose']
+    exceptional_concepts_array = ['Prescription time period', 
+                                  'Prescribe Cotrimoxazole (CPT)',
+                                  'Prescribe Insecticide Treated Net (ITN)',
+                                  'Prescribe recommended dosage',
+                                  'Stavudine dosage',
+                                  'Provider shown patient BMI',
+                                  'Prescribed dose']
 
     av_params = init_params(enc_row, 'ART VISIT')
     ad_params = init_params(enc_row, 'ART ADHERENCE')
@@ -21,22 +28,22 @@ class ArtVisitImporter < Migrator::Importer
 
     #prepare template for prescriptions
     prescription_params = {
-       :patient_id=> enc_row['patient_id'],
-       :type_of_prescription=>'variable',
-       :duration=>'',
-       :prn=>1,
-       :morning_dose=>'',
-       :afternoon_dose=>'',
-       :evening_dose=>'',
-       :night_dose=>'',
-       :generic=>'',
-       :dose_strength=>'',
-       :formulation=>'',
-       :auto=> '',
-       :frequency=> '',
-       :diagnosis=>'NO DIAGNOSIS',
-       :location => enc_row['workstation'],
-       :imported_date_created => enc_row['date_created']
+      :patient_id=> enc_row['patient_id'],
+      :type_of_prescription=>'variable',
+      :duration=>'',
+      :prn=>1,
+      :morning_dose=>'',
+      :afternoon_dose=>'',
+      :evening_dose=>'',
+      :night_dose=>'',
+      :generic=>'',
+      :dose_strength=>'',
+      :formulation=>'',
+      :auto=> '',
+      :frequency=> '',
+      :diagnosis=>'NO DIAGNOSIS',
+      :location => enc_row['workstation'],
+      :imported_date_created => enc_row['date_created']
     }
 
     obs_headers.each do |question|
@@ -52,47 +59,67 @@ class ArtVisitImporter < Migrator::Importer
           :location_id => enc_row['location_id']
         }
       end
-      rows_array = [] # To hold an array of params, in case we have multiple rows of a particular observation
-      post_destination = 0 #reset the post_destination variable: expected values: 1 =  Art_Visit
-                           # 2 = Adherence, 3 = Treatment, 4 = Outcome
+
+      # To hold an array of params, in case we have multiple rows of a
+      # particular observation
+      rows_array = []
+
+      #reset the post_destination variable: expected values: 1 =  Art_Visit
+      # 2 = Adherence, 3 = Treatment, 4 = Outcome
+      post_destination = 0
 
       case question
-      when 	'Hepatitis',
-            'Refer patient to clinician', 'Weight loss',
-            'Leg pain / numbness', 'Vomit', 'Jaundice','ARV regimen',
-            'Is able to walk unaided', 'Is at work/school', 'Weight', 'Pregnant', 'Other side effect', 'Continue ART',
-            'Moderate unexplained wasting / malnutrition not responding to treatment (weight-for-height/ -age 70-79% or MUAC 11-12cm)',
-            'Severe unexplained wasting / malnutrition not responding to treatment(weight-for-height/ -age less than 70% or MUAC less than 11cm or oedema)',
-            'Prescribe ARVs this visit', 'Provider shown adherence data'
-        rows_array = generate_params_array(quest_params,enc_row[question].to_s,question.to_s) unless enc_row[question].to_s.empty?
+      when 'Hepatitis',
+          'Refer patient to clinician', 'Weight loss',
+          'Leg pain / numbness', 'Vomit', 'Jaundice','ARV regimen',
+          'Is able to walk unaided', 'Is at work/school', 'Weight', 'Pregnant',
+          'Other side effect', 'Continue ART',
+          'Moderate unexplained wasting / malnutrition not responding to treatment (weight-for-height/ -age 70-79% or MUAC 11-12cm)',
+          'Severe unexplained wasting / malnutrition not responding to treatment(weight-for-height/ -age less than 70% or MUAC less than 11cm or oedema)',
+          'Prescribe ARVs this visit', 'Provider shown adherence data'
+        rows_array = generate_params_array(quest_params,
+                                           enc_row[question].to_s,question.to_s
+                                          ) unless enc_row[question].to_s.empty?
         post_destination = 1
-      when 	'Total number of whole ARV tablets remaining', 'Whole tablets remaining and brought to clinic',
-            'Whole tablets remaining but not brought to clinic'
-        rows_array = generate_params_array(quest_params,enc_row[question].to_s,question.to_s) unless enc_row[question].to_s.empty?
+      when 'Total number of whole ARV tablets remaining',
+           'Whole tablets remaining and brought to clinic',
+           'Whole tablets remaining but not brought to clinic'
+        rows_array = generate_params_array(quest_params,
+                                           enc_row[question].to_s,question.to_s
+                                          ) unless enc_row[question].to_s.empty?
         post_destination = 2
-      when 	'Prescription time period', 'Prescribe Cotrimoxazole (CPT)', 'Prescribe Insecticide Treated Net (ITN)',
-            'Prescribe recommended dosage', 'Stavudine dosage', 'Provider shown patient BMI','Prescribed dose'
+      when 'Prescription time period',
+           'Prescribe Cotrimoxazole (CPT)',
+           'Prescribe Insecticide Treated Net (ITN)',
+           'Prescribe recommended dosage', 'Stavudine dosage',
+           'Provider shown patient BMI','Prescribed dose'
         if question == 'Prescribed dose'
           dosages_array = generate_dosage(enc_row[question].to_s)
         else
-          prescription_params = update_prescription_parameters(prescription_params,enc_row[question].to_s,question.to_s) unless enc_row[question].to_s.empty?
+          prescription_params = update_prescription_parameters(
+            prescription_params, enc_row[question].to_s,
+            question.to_s) unless enc_row[question].to_s.empty?
         end
 
       when 	'Continue treatment at current clinic', 'Transfer out destination'
-        rows_array = generate_params_array(quest_params,enc_row[question].to_s,question.to_s) unless enc_row[question].to_s.empty?
+        rows_array = generate_params_array(quest_params,enc_row[question].to_s,
+          question.to_s) unless enc_row[question].to_s.empty?
         post_destination = 4
       when  'TB status' #Special as this is saving value_coded_or_text in Bart2
-        rows_array = get_tb_status(quest_params,enc_row[question].to_s) unless enc_row[question].to_s.empty?
+        rows_array = get_tb_status(quest_params,
+          enc_row[question].to_s) unless enc_row[question].to_s.empty?
         post_destination = 1
       end
 
-      if concepts_array.include?(question.upcase) #Check if the symptom exists in the concepts_array
+      #Check if the symptom exists in the concepts_array
+      if concepts_array.include?(question.upcase)
         unless enc_row[question].to_s.empty?
           symptoms_array << question
         end
       end
 
-      if effects_array.include?(question.upcase) #Check if the symptom exists in the concepts_array
+      #Check if the symptom exists in the effects_array
+      if effects_array.include?(question.upcase)
         unless enc_row[question].to_s.empty?
           adverse_effects_array << question
         end
@@ -217,37 +244,37 @@ class ArtVisitImporter < Migrator::Importer
     updated_parameters = question_parameters
 
     field_value_pair = split_string(column_string,'-') #split the fields into 'field_name' and 'value' (separated by '-')
-        case actual_question
-        when 'Prescription time period'
-          case field_value_pair[1]
-          when  '1 month'
-            updated_parameters[:duration] = 30
-          when  '2 months'
-            updated_parameters[:duration] = 60
-          when  '3 months'
-            updated_parameters[:duration] = 90
-          when  '4 months'
-            updated_parameters[:duration] = 120
-          when  '5 months'
-            updated_parameters[:duration] = 150
-          when  '6 months'
-            updated_parameters[:duration] = 180
-          when  '2 weeks'
-            updated_parameters[:duration] = 14
-          end
-        when 'Prescribe Cotrimoxazole (CPT)'
-          updated_parameters[:generic] = Drug.find(297).name
-        when 'Prescribe Insecticide Treated Net (ITN)'
-          #updated_parameters[:value_coded_or_text] = ''
-        when 'Prescribe recommended dosage'
-          #updated_parameters[:value_coded_or_text] = ''
-        when 'Stavudine dosage'
-          updated_parameters[:generic] = 'Stavudine'
-        when 'Provider shown patient BMI'
-          #updated_parameters[:value_coded_or_text] = ''
-        end
-      return updated_parameters
+    case actual_question
+    when 'Prescription time period'
+      case field_value_pair[1]
+      when  '1 month'
+        updated_parameters[:duration] = 30
+      when  '2 months'
+        updated_parameters[:duration] = 60
+      when  '3 months'
+        updated_parameters[:duration] = 90
+      when  '4 months'
+        updated_parameters[:duration] = 120
+      when  '5 months'
+        updated_parameters[:duration] = 150
+      when  '6 months'
+        updated_parameters[:duration] = 180
+      when  '2 weeks'
+        updated_parameters[:duration] = 14
+      end
+    when 'Prescribe Cotrimoxazole (CPT)'
+      updated_parameters[:generic] = Drug.find(297).name
+    when 'Prescribe Insecticide Treated Net (ITN)'
+      #updated_parameters[:value_coded_or_text] = ''
+    when 'Prescribe recommended dosage'
+      #updated_parameters[:value_coded_or_text] = ''
+    when 'Stavudine dosage'
+      updated_parameters[:generic] = 'Stavudine'
+    when 'Provider shown patient BMI'
+      #updated_parameters[:value_coded_or_text] = ''
     end
+    return updated_parameters
+  end
 
   def generate_dosage(column_string)
     return_array = [] #to hold an array of formatted dosages
@@ -258,27 +285,27 @@ class ArtVisitImporter < Migrator::Importer
       all_fields_array = split_string(row_value,';') #split the rows into an array of fields (separated by ';')
       all_fields_array.each do |field|
         field_value_pair = split_string(field,'-') #split the fields into 'field_name' and 'value' (separated by '-')
-          case field_value_pair[0]
-          when 'value_drug'
-            dosage_params[:drug_id] = field_value_pair[1]
-          when 'value_text'
-            case field_value_pair[1]
-            when  'Morning'
-              dosage_params[:morning_dose] = 'current'
-            when  'Noon'
-              dosage_params[:afternoon_dose] = 'current'
-            when  'Evening'
-              dosage_params[:evening_dose] = 'current'
-            when  'Night'
-              dosage_params[:night_dose] = 'current'
-            end
-          when 'value_numeric'
-            dosage_params[:morning_dose] = field_value_pair[1] if dosage_params[:morning_dose] == 'current'
-            dosage_params[:afternoon_dose] = field_value_pair[1] if dosage_params[:afternoon_dose] == 'current'
-            dosage_params[:evening_dose] = field_value_pair[1] if dosage_params[:evening_dose] == 'current'
-            dosage_params[:night_dose] = field_value_pair[1] if dosage_params[:night_dose] == 'current'
+        case field_value_pair[0]
+        when 'value_drug'
+          dosage_params[:drug_id] = field_value_pair[1]
+        when 'value_text'
+          case field_value_pair[1]
+          when  'Morning'
+            dosage_params[:morning_dose] = 'current'
+          when  'Noon'
+            dosage_params[:afternoon_dose] = 'current'
+          when  'Evening'
+            dosage_params[:evening_dose] = 'current'
+          when  'Night'
+            dosage_params[:night_dose] = 'current'
           end
-       end
+        when 'value_numeric'
+          dosage_params[:morning_dose] = field_value_pair[1] if dosage_params[:morning_dose] == 'current'
+          dosage_params[:afternoon_dose] = field_value_pair[1] if dosage_params[:afternoon_dose] == 'current'
+          dosage_params[:evening_dose] = field_value_pair[1] if dosage_params[:evening_dose] == 'current'
+          dosage_params[:night_dose] = field_value_pair[1] if dosage_params[:night_dose] == 'current'
+        end
+      end
       dose_array << dosage_params
     end
     dose_array.each do |dose|
@@ -286,11 +313,11 @@ class ArtVisitImporter < Migrator::Importer
       return_array << dose if return_array.empty?
       return_array.each do |values|
         if dose[:drug_id] == values[:drug_id]
-            values[:morning_dose] = dose[:morning_dose] if dose[:morning_dose] != ''
-            values[:afternoon_dose] = dose[:afternoon_dose] if dose[:afternoon_dose] != ''
-            values[:evening_dose] = dose[:evening_dose] if dose[:evening_dose] != ''
-            values[:night_dose] = dose[:night_dose] if dose[:night_dose] != ''
-            @found = true
+          values[:morning_dose] = dose[:morning_dose] if dose[:morning_dose] != ''
+          values[:afternoon_dose] = dose[:afternoon_dose] if dose[:afternoon_dose] != ''
+          values[:evening_dose] = dose[:evening_dose] if dose[:evening_dose] != ''
+          values[:night_dose] = dose[:night_dose] if dose[:night_dose] != ''
+          @found = true
         end
       end
       return_array << dose if @found == false
@@ -301,10 +328,10 @@ class ArtVisitImporter < Migrator::Importer
   def init_dosage_params
     dose_params = {}
     dose_params[:drug_id] = 0,
-    dose_params[:afternoon_dose] = '',
-    dose_params[:morning_dose]= '',
-    dose_params[:evening_dose]= '',
-    dose_params[:night_dose]= ''
+      dose_params[:afternoon_dose] = '',
+      dose_params[:morning_dose]= '',
+      dose_params[:evening_dose]= '',
+      dose_params[:night_dose]= ''
 
     return dose_params
   end
