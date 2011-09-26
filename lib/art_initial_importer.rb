@@ -16,7 +16,7 @@ class ArtInitialImporter < Migrator::Importer
     enc_params['programs[]'] << {
       'program_id' => Program.find_by_name('HIV PROGRAM').id,
       'date_enrolled' => enc_row['encounter_datetime'],
-      'states[]' => {'state' => 'FOLLOWING'},
+      'states[]' => {'state' => 'Pre-ART (Continue)'},
       'patient_program_id' => '',
       'location_id' => Location.current_health_center.id,
     }
