@@ -27,51 +27,52 @@ class VitalsImporter < Migrator::Importer
       end
       enc_params['observations[]'] << quest_params
     end
+    
+    unless @currentHeight.blank? || @currentWeight.blank?
+      @patient = Patient.find(enc_row['patient_id'])
+      if @patient.person.age.to_i < 15 #obs_headers.include?'Paediatric growth indicators' #calculate paediatric growth indicators
+       age_in_months = @patient.person.age_in_months
+       gender = @patient.person.gender
+       medianweightheight = WeightHeightForAge.median_weight_height(age_in_months, gender).join(',') #rescue nil
+       currentweightpercentile = (@currentWeight/(medianweightheight[0])*100).round(0)
+       currentheightpercentile = (@currentHeight/(medianweightheight[1])*100).round(0)
 
-    @patient = Patient.find(enc_row['patient_id'])
-    if @patient.person.age.to_i < 15 #obs_headers.include?'Paediatric growth indicators' #calculate paediatric growth indicators
-     age_in_months = @patient.person.age_in_months
-     gender = @patient.person.gender
-     medianweightheight = WeightHeightForAge.median_weight_height(age_in_months, gender).join(',') #rescue nil
-     currentweightpercentile = (@currentWeight/(medianweightheight[0])*100).round(0)
-     currentheightpercentile = (@currentHeight/(medianweightheight[1])*100).round(0)
+        heightforage_params = {
+          :patient_id =>  enc_row['patient_id'],
+          :concept_name => Concept.find_by_name("HT FOR AGE").fullname,
+          :obs_datetime => enc_row['encounter_datetime']
+        }
+        heightforage_params[:value_numeric]  = currentheightpercentile
+        enc_params['observations[]'] << heightforage_params
 
-      heightforage_params = {
-        :patient_id =>  enc_row['patient_id'],
-        :concept_name => Concept.find_by_name("HT FOR AGE").fullname,
-        :obs_datetime => enc_row['encounter_datetime']
-      }
-      heightforage_params[:value_numeric]  = currentheightpercentile
-      enc_params['observations[]'] << heightforage_params
+        weightforage_params = {
+          :patient_id =>  enc_row['patient_id'],
+          :concept_name => Concept.find_by_name("WT FOR AGE").fullname,
+          :obs_datetime => enc_row['encounter_datetime']
+        }
+        weightforage_params[:value_numeric]  = currentweightpercentile
+        enc_params['observations[]'] << weightforage_params
 
-      weightforage_params = {
-        :patient_id =>  enc_row['patient_id'],
-        :concept_name => Concept.find_by_name("WT FOR AGE").fullname,
-        :obs_datetime => enc_row['encounter_datetime']
-      }
-      weightforage_params[:value_numeric]  = currentweightpercentile
-      enc_params['observations[]'] << weightforage_params
-
-      weightforheight_params = {
-        :patient_id =>  enc_row['patient_id'],
-        :concept_name => Concept.find_by_name("WT FOR HT").fullname,
-        :obs_datetime => enc_row['encounter_datetime']
-      }
-      weightforheight_params[:value_numeric]  = calculate_weight_for_height(@currentHeight,@currentWeight)
-      enc_params['observations[]'] << weightforheight_params
+        weightforheight_params = {
+          :patient_id =>  enc_row['patient_id'],
+          :concept_name => Concept.find_by_name("WT FOR HT").fullname,
+          :obs_datetime => enc_row['encounter_datetime']
+        }
+        weightforheight_params[:value_numeric]  = calculate_weight_for_height(@currentHeight,@currentWeight)
+        enc_params['observations[]'] << weightforheight_params
 
 
-    else #calculate BMI
-      bmi_params = {
-        :patient_id =>  enc_row['patient_id'],
-        :concept_name => Concept.find_by_name("BMI").fullname,
-        :obs_datetime => enc_row['encounter_datetime']
-      }
+      else #calculate BMI
+        bmi_params = {
+          :patient_id =>  enc_row['patient_id'],
+          :concept_name => Concept.find_by_name("BMI").fullname,
+          :obs_datetime => enc_row['encounter_datetime']
+        }
 
-      bmi_params[:value_numeric]  = (@currentWeight/(@currentHeight*@currentHeight)*10000.0).round(1) unless @currentHeight < 1
-      enc_params['observations[]'] << bmi_params
+        bmi_params[:value_numeric]  = (@currentWeight/(@currentHeight*@currentHeight)*10000.0).round(1) unless @currentHeight < 1
+        enc_params['observations[]'] << bmi_params
+      end
     end
-
     enc_params
   end
 

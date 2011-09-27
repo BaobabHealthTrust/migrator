@@ -84,9 +84,17 @@ class ArtVisitImporter < Migrator::Importer
       when 'Total number of whole ARV tablets remaining',
            'Whole tablets remaining and brought to clinic',
            'Whole tablets remaining but not brought to clinic'
-        rows_array = generate_params_array(quest_params,
+        rows_array_raw = generate_params_array(quest_params,
                                            enc_row[question].to_s,question.to_s
                                           ) unless enc_row[question].to_s.empty?
+        rows_array = []
+        rows_array_raw.each{ | element|
+          if element[:value_drug]
+            element[:value_drug] = @drug_oldid_newid_map[element[:value_drug]]
+          end
+        rows_array << element
+        }
+
         post_destination = 2
       when 'Prescription time period',
            'Prescribe Cotrimoxazole (CPT)',
