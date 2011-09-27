@@ -47,14 +47,14 @@ class ArtVisitImporter < Migrator::Importer
     }
 
     obs_headers.each do |question|
-      next unless enc_row[question]
+      next if enc_row[question].blank?
       concept = Concept.find(@concept_name_map[question]) rescue nil
       next unless concept || exceptional_concepts_array.include?(question)
 
       unless exceptional_concepts_array.include?(question)
         quest_params = {
           :patient_id => enc_row['patient_id'],
-          :concept_name => Concept.find(@concept_name_map[question]).fullname,
+          :concept_name => concept.fullname,
           :obs_datetime => enc_row['encounter_datetime'],
           :location_id => enc_row['location_id']
         }

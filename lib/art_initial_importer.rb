@@ -22,12 +22,14 @@ class ArtInitialImporter < Migrator::Importer
     }
 
     obs_headers.each do |question|
-      next unless enc_row[question]
+      next if enc_row[question].blank?
       concept = Concept.find(@concept_name_map[question]) rescue nil
       next unless concept
+
+
       quest_params = {
         :patient_id =>  enc_row['patient_id'],
-        :concept_name => Concept.find(@concept_name_map[question]).fullname,
+        :concept_name => concept.fullname,
         :obs_datetime => enc_row['encounter_datetime']
       }
 
@@ -39,16 +41,19 @@ class ArtInitialImporter < Migrator::Importer
         quest_params[:value_numeric]  = enc_row[question]
       when 'ARV number at that site'
         quest_params[:value_text]     = enc_row[question]
-      when 'Location of first positive HIV test'
+      when 'Location of first positive HIV test', 'Site transferred from',
+           'Location of ART initiation'
         quest_params[:value_coded_or_text] = enc_row[question] # Location
+      when 'Provider'
+        enc_params['encounter']['provider_id'] = enc_row[question]
       else
         begin
-          quest_params[:value_coded_or_text] = Concept.find(
-            @concept_map[enc_row[question]]
-          ).concept_id
+          answer = @concept_map[enc_row[question].split(':').first]
+          quest_params[:value_coded_or_text] = Concept.find(answer).concept_id
         rescue
+          puts "****** Import failed: encounter #{enc_row['encounter_id']} " +
+               "Q:#{question} A:#{enc_row[question]}****"
           next
-          #raise question + ":" + enc_row[question]
         end
       end
       enc_params['observations[]'] << quest_params

@@ -7,15 +7,15 @@ class HivStagingImporter < Migrator::Importer
     enc_params = init_params(enc_row, type_name)
 
     obs_headers.each do |question|
-      next unless enc_row[question]
+      next if enc_row[question].blank?
       concept = Concept.find(@concept_name_map[question]) rescue nil
       next unless concept
+
       quest_params = {
         :patient_id   =>  enc_row['patient_id'],
-        :concept_name => Concept.find(@concept_name_map[question]).fullname,
+        :concept_name => concept.fullname,
         :obs_datetime => enc_row['encounter_datetime'],
         :location_id => enc_row['location_id']
-
       }
 
       case question
@@ -30,8 +30,11 @@ class HivStagingImporter < Migrator::Importer
         quest_params[:value_coded_or_text] = patient.reason_for_art_eligibility.concept_id
       else
         begin
-          quest_params[:value_coded_or_text] = @concept_map[enc_row[question]]
+          answer = @concept_map[enc_row[question].split(':').first]
+          quest_params[:value_coded_or_text] = answer
         rescue
+          puts "****** Import failed: encounter #{enc_row['encounter_id']} " +
+               "Q:#{question} A:#{enc_row[question]}****"
           next
         end
       end

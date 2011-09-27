@@ -1,3 +1,5 @@
+include Rake::DSL
+
 require 'rubygems'
 require 'rake'
 require 'echoe'

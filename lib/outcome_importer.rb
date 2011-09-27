@@ -17,13 +17,16 @@ class OutcomeImporter < Migrator::Importer
     enc_params[:current_date] = enc_row['encounter_datetime']
 
     obs_headers.each do |question|
-      next unless enc_row[question]
+      answer = enc_row[question].split(';').first if enc_row[question]
+      next unless answer
+
+      puts "enc:#{enc_row['encounter_id']} q:#{question} answer:#{answer}"
 
       enc_params['observations[]'] << {
         :patient_id =>  enc_row['patient_id'],
         :concept_name => Concept.find(@concept_name_map[question]).fullname,
         :obs_datetime => enc_row['encounter_datetime'],
-        :value_coded_or_text => Concept.find(@concept_map[enc_row[question]]).fullname,
+        :value_coded_or_text => Concept.find(@concept_map[answer]).fullname,
         :location => enc_row['location_id']
       }
     end
