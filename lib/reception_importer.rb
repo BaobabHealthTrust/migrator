@@ -29,7 +29,13 @@ class ReceptionImporter < Migrator::Importer
 
   def create_encounter(row, obs_headers, bart_url, post_action)
     enc_params = self.params(row, obs_headers)
-    post_params(post_action, enc_params, bart_url)
+    #post_params(post_action, enc_params, bart_url)
+    post_params(enc_params)
+  end
+
+  def post_params(enc_params)
+    encounters = EncountersController.new
+    encounters.create(HashWithIndifferentAccess.new(enc_params), {})
   end
 
 end
