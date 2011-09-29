@@ -12,29 +12,38 @@ class DispensationImporter < Migrator::Importer
         next # TODO: find regimens for the first 15 dispensation at MPC
 
       when 'Number of CPT tablets dispensed'
-        enc_params = {
-          :patient_id => enc_row['patient_id'],
-          :drug_id    => 297, # To check if this is the value that should be posted
-          :quantity   => enc_row[question],
-          :location => enc_row['workstation'],
-          :imported_date_created=> enc_row['encounter_datetime']
-        }
-        post_params('dispensations/create', enc_params, bart_url)
-
+        begin
+          enc_params = {
+            :patient_id => enc_row['patient_id'],
+            :drug_id    => 297, # To check if this is the value that should be posted
+            :quantity   => enc_row[question],
+            :location => enc_row['workstation'],
+            :imported_date_created=> enc_row['encounter_datetime']
+          }
+          post_params('dispensations/create', enc_params, bart_url)
+        rescue
+           log "Failed to import encounter #{row['encounter_id']}"
+        end
       when 'Appointment date'
-
-        enc_params = self.appointment_params(enc_row)
-        post_params(post_action, enc_params, bart_url)
-
+        begin
+          enc_params = self.appointment_params(enc_row)
+          post_params(post_action, enc_params, bart_url)
+        rescue
+          log "Failed to import encounter #{row['encounter_id']}"
+        end
       else # dispensed drugs
-        enc_params = {
-          :patient_id => enc_row['patient_id'],
-          :drug_id    => @drug_oldid_newid_map[@drug_name_map[question]],
-          :quantity   => enc_row[question],
-          :location => enc_row['workstation'],
-          :imported_date_created=> enc_row['encounter_datetime']
-        }
-        post_params('dispensations/create', enc_params, bart_url)
+        begin
+          enc_params = {
+            :patient_id => enc_row['patient_id'],
+            :drug_id    => @drug_oldid_newid_map[@drug_name_map[question]],
+            :quantity   => enc_row[question],
+            :location => enc_row['workstation'],
+            :imported_date_created=> enc_row['encounter_datetime']
+          }
+          post_params('dispensations/create', enc_params, bart_url)
+        rescue
+          log "Failed to import encounter #{row['encounter_id']}"
+        end
       end
     end
 
@@ -60,6 +69,10 @@ class DispensationImporter < Migrator::Importer
       enc_params[:time_until_next_visit] = (appointment_date - visit_date.to_date).to_i/7
     end
     enc_params
+  end
+
+  def log(msg)
+    system("echo \"#{msg}\" >> #{RAILS_ROOT + '/log/import_errors.log'}")
   end
 
 end

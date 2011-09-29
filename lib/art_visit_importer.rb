@@ -345,18 +345,25 @@ class ArtVisitImporter < Migrator::Importer
   end
 
   def create_encounter(row, obs_headers, bart_url, post_action)
-    enc_params = params(row, obs_headers)
-    #raise enc_params[0].to_yaml
-    #post params if an item in enc_params have observations
-    post_params(post_action, enc_params[0], bart_url) unless enc_params[0]['observations[]'].empty?
-    post_params(post_action, enc_params[1], bart_url) unless enc_params[1]['observations[]'].empty?
+    begin
+      enc_params = params(row, obs_headers)
+      #raise enc_params[0].to_yaml
+      #post params if an item in enc_params have observations
+      post_params(post_action, enc_params[0], bart_url) unless enc_params[0]['observations[]'].empty?
+      post_params(post_action, enc_params[1], bart_url) unless enc_params[1]['observations[]'].empty?
 
-    unless enc_params[2].empty?
-      enc_params[2].each do |prescription|
-        post_params('prescriptions/create', prescription, bart_url)
+      unless enc_params[2].empty?
+        enc_params[2].each do |prescription|
+          post_params('prescriptions/create', prescription, bart_url)
+        end
       end
+      post_params('programs/update', enc_params[3], bart_url) unless enc_params[3]['observations[]'].empty?
+    rescue
+      log "Failed to import encounter #{row['encounter_id']}"
     end
-    post_params('programs/update', enc_params[3], bart_url) unless enc_params[3]['observations[]'].empty?
+  end
 
+  def log(msg)
+    system("echo \"#{msg}\" >> #{RAILS_ROOT + '/log/import_errors.log'}")
   end
 end

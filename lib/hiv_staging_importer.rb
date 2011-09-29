@@ -44,8 +44,17 @@ class HivStagingImporter < Migrator::Importer
     enc_params
   end
 
-  def create_encounter(row, obs_headers, bart_url, post_action)
-    enc_params = params(row, obs_headers)
-    post_params(post_action, enc_params, bart_url)
+ def create_encounter(row, obs_headers, bart_url, post_action)
+    begin
+      enc_params = params(row, obs_headers)
+      post_params(post_action, enc_params, bart_url)
+    rescue
+      log "Failed to import encounter #{row['encounter_id']}"
+    end
   end
+
+  def log(msg)
+    system("echo \"#{msg}\" >> #{RAILS_ROOT + '/log/import_errors.log'}")
+  end
+
 end
