@@ -22,14 +22,14 @@ class DispensationImporter < Migrator::Importer
           }
           post_params('dispensations/create', enc_params, bart_url)
         rescue
-           log "Failed to import encounter #{row['encounter_id']}"
+           log "Failed to import encounter #{enc_row['encounter_id']}"
         end
       when 'Appointment date'
         begin
           enc_params = self.appointment_params(enc_row)
           post_params(post_action, enc_params, bart_url)
         rescue
-          log "Failed to import encounter #{row['encounter_id']}"
+          log "Failed to import encounter #{enc_row['encounter_id']}"
         end
       else # dispensed drugs
         begin
@@ -42,7 +42,7 @@ class DispensationImporter < Migrator::Importer
           }
           post_params('dispensations/create', enc_params, bart_url)
         rescue
-          log "Failed to import encounter #{row['encounter_id']}"
+          log "Failed to import encounter #{enc_row['encounter_id']}"
         end
       end
     end
