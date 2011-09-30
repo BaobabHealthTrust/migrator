@@ -27,7 +27,11 @@ class DispensationImporter < Importer
       when 'Appointment date'
         begin
           enc_params = self.appointment_params(enc_row)
-          post_params(post_action, enc_params, bart_url)
+          if restful
+            post_params(post_action, enc_params, bart_url)
+          else
+            create_with_params(enc_params)
+          end
         rescue
           log "Failed to import encounter #{enc_row['encounter_id']}"
         end
