@@ -1,5 +1,5 @@
 
-class ArtVisitImporter < Migrator::Importer
+class ArtVisitImporter < Importer
 
   # Create ART Visit Params from a CSV Encounter row
   def params(enc_row, obs_headers)
@@ -345,18 +345,26 @@ class ArtVisitImporter < Migrator::Importer
   end
 
   def create_encounter(row, obs_headers, bart_url, post_action)
-    enc_params = params(row, obs_headers)
-    #raise enc_params[0].to_yaml
-    #post params if an item in enc_params have observations
-    post_params(post_action, enc_params[0], bart_url) unless enc_params[0]['observations[]'].empty?
-    post_params(post_action, enc_params[1], bart_url) unless enc_params[1]['observations[]'].empty?
-
-    unless enc_params[2].empty?
-      enc_params[2].each do |prescription|
-        post_params('prescriptions/create', prescription, bart_url)
+    begin
+      enc_params = params(row, obs_headers)
+      if restful
+        #post params if an item in enc_params have observations
+        post_params(post_action, enc_params[0], bart_url) unless enc_params[0]['observations[]'].empty?
+        post_params(post_action, enc_params[1], bart_url) unless enc_params[1]['observations[]'].empty?
+      else
+        create_with_params(enc_params[0]) unless enc_params[0]['observations[]'].empty?
+        create_with_params(enc_params[1]) unless enc_params[1]['observations[]'].empty?
       end
-    end
-    post_params('programs/update', enc_params[3], bart_url) unless enc_params[3]['observations[]'].empty?
 
+      unless enc_params[2].empty?
+        enc_params[2].each do |prescription|
+          post_params('prescriptions/create', prescription, bart_url)
+        end
+      end
+      post_params('programs/update', enc_params[3], bart_url) unless enc_params[3]['observations[]'].empty?
+    rescue
+      log "Failed to import encounter #{row['encounter_id']}"
+    end
   end
+
 end

@@ -1,5 +1,5 @@
 
-class HivStagingImporter < Migrator::Importer
+class HivStagingImporter < Importer
 
   # Create HIV Staging Params from a CSV Encounter row
   def params(enc_row, obs_headers)
@@ -45,7 +45,16 @@ class HivStagingImporter < Migrator::Importer
   end
 
   def create_encounter(row, obs_headers, bart_url, post_action)
-    enc_params = params(row, obs_headers)
-    post_params(post_action, enc_params, bart_url)
+    begin
+      enc_params = self.params(row, obs_headers)
+      if @restful
+        post_params(post_action, enc_params, bart_url)
+      else
+        create_with_params(enc_params)
+      end
+    rescue
+      log "Failed to import encounter #{row['encounter_id']}"
+    end
   end
+
 end

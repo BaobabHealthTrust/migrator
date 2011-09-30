@@ -2,14 +2,14 @@
 
 Gem::Specification.new do |s|
   s.name = %q{migrator}
-  s.version = "0.1.2"
+  s.version = "0.2.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 1.2") if s.respond_to? :required_rubygems_version=
   s.authors = ["Baobab Health"]
   s.date = %q{2011-09-16}
   s.description = %q{Migrate BART patient visit information}
   s.email = %q{developers@baobabhealth.org}
-  s.extra_rdoc_files = ["LICENSE", "README.rdoc", "lib/art_initial_importer.rb", "lib/art_visit_importer.rb", "lib/dispensation_importer.rb", "lib/encounter_exporter.rb", "lib/hiv_staging_importer.rb", "lib/migrator.rb", "lib/migrator/exportable.rb", "lib/migrator/importable.rb", "lib/migrator/importer.rb", "lib/outcome_importer.rb", "lib/reception_importer.rb", "lib/vitals_importer.rb"]
+  s.extra_rdoc_files = ["LICENSE", "README.rdoc", "lib/art_initial_importer.rb", "lib/art_visit_importer.rb", "lib/dispensation_importer.rb", "lib/encounter_exporter.rb", "lib/hiv_staging_importer.rb", "lib/migrator.rb", "lib/migrator/exportable.rb", "lib/migrator/importable.rb", "lib/importer.rb", "lib/outcome_importer.rb", "lib/reception_importer.rb", "lib/vitals_importer.rb"]
   s.files = ["LICENSE", "Manifest", "README.rdoc", "Rakefile", "lib/art_initial_importer.rb", "lib/art_visit_importer.rb", "lib/dispensation_importer.rb", "lib/encounter_exporter.rb", "lib/hiv_staging_importer.rb", "lib/migrator.rb", "lib/migrator/exportable.rb", "lib/migrator/importable.rb", "lib/migrator/importer.rb", "lib/outcome_importer.rb", "lib/reception_importer.rb", "lib/vitals_importer.rb", "spec/encounter_exporter_spec.rb", "spec/spec_helper.rb", "migrator.gemspec"]
   s.homepage = %q{http://github.com/baobabhealthtrust/migrator}
   s.rdoc_options = ["--line-numbers", "--inline-source", "--title", "Migrator", "--main", "README.rdoc"]

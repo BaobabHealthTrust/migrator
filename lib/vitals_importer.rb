@@ -1,5 +1,5 @@
 
-class VitalsImporter < Migrator::Importer
+class VitalsImporter < Importer
 
   # Create HIV Reception Params from a CSV Encounter row
   def params(enc_row, obs_headers)
@@ -85,8 +85,4 @@ class VitalsImporter < Migrator::Importer
     return weight_for_height_percentile
   end
 
-  def create_encounter(row, obs_headers, bart_url, post_action)
-    enc_params = params(row, obs_headers)
-    post_params(post_action, enc_params, bart_url)
-  end
 end
