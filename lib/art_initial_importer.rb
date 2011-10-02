@@ -63,15 +63,23 @@ class ArtInitialImporter < Importer
   end
 
   def create_encounter(row, obs_headers, bart_url, post_action)
-    begin
-      enc_params = self.params(row, obs_headers)
-      if @restful
-        post_params(post_action, enc_params, bart_url)
-      else
-        create_with_params(enc_params)
+    encounter_log = EncounterLog.find_by_encounter_id(row['encounter_id'])
+
+    # skip successfully imported encounters
+    if encounter_log.nil? or encounter_log.status != 1
+      begin
+        enc_params = self.params(row, obs_headers)
+        if @restful
+          post_params(post_action, enc_params, bart_url)
+        else
+          create_with_params(enc_params)
+        end
+      rescue => error
+        log "Failed to import encounter #{row['encounter_id']}"
+        encounter_log = Encounter.new(row['encounter_id'])
+        encounter_log.status = 0
+        encounter_log.desc = error.message # exception error msg
       end
-    rescue
-      log "Failed to import encounter #{row['encounter_id']}"
     end
   end
 
