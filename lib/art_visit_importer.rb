@@ -43,6 +43,7 @@ class ArtVisitImporter < Migrator::Importer
       :frequency=> '',
       :diagnosis=>'NO DIAGNOSIS',
       :location => enc_row['workstation'],
+      :encounter_datetime => enc_row['encounter_datetime'],
       :imported_date_created => enc_row['date_created']
     }
 

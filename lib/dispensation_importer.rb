@@ -18,6 +18,7 @@ class DispensationImporter < Migrator::Importer
             :drug_id    => 297, # To check if this is the value that should be posted
             :quantity   => enc_row[question],
             :location => enc_row['workstation'],
+            :encounter_datetime => enc_row['encounter_datetime'],
             :imported_date_created=> enc_row['encounter_datetime']
           }
           post_params('dispensations/create', enc_params, bart_url)
@@ -38,6 +39,7 @@ class DispensationImporter < Migrator::Importer
             :drug_id    => @drug_oldid_newid_map[@drug_name_map[question]],
             :quantity   => enc_row[question],
             :location => enc_row['workstation'],
+            :encounter_datetime => enc_row['encounter_datetime'],
             :imported_date_created=> enc_row['encounter_datetime']
           }
           post_params('dispensations/create', enc_params, bart_url)
