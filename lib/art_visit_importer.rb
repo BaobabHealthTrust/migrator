@@ -43,6 +43,7 @@ class ArtVisitImporter < Importer
       :frequency=> '',
       :diagnosis=>'NO DIAGNOSIS',
       :location => enc_row['workstation'],
+      :encounter_datetime => enc_row['encounter_datetime'],
       :imported_date_created => enc_row['date_created']
     }
 
@@ -121,7 +122,7 @@ class ArtVisitImporter < Importer
 
       #Check if the symptom exists in the concepts_array
       if concepts_array.include?(question.upcase)
-        unless enc_row[question].to_s.empty?
+        unless enc_row[question].to_s.empty? #  TODO
           symptoms_array << question
         end
       end
@@ -347,23 +348,41 @@ class ArtVisitImporter < Importer
   def create_encounter(row, obs_headers, bart_url, post_action)
     begin
       enc_params = params(row, obs_headers)
-      if restful
+      if @restful
         #post params if an item in enc_params have observations
-        post_params(post_action, enc_params[0], bart_url) unless enc_params[0]['observations[]'].empty?
+        new_id = post_params(post_action, enc_params[0], bart_url) unless enc_params[0]['observations[]'].empty?
         post_params(post_action, enc_params[1], bart_url) unless enc_params[1]['observations[]'].empty?
       else
-        create_with_params(enc_params[0]) unless enc_params[0]['observations[]'].empty?
+        new_id = create_with_params(enc_params[0]) unless enc_params[0]['observations[]'].empty?
         create_with_params(enc_params[1]) unless enc_params[1]['observations[]'].empty?
       end
+
+      puts "params0 empty" if enc_params[0]['observations[]'].empty?
+      puts "params1 empty" if enc_params[1]['observations[]'].empty?
 
       unless enc_params[2].empty?
         enc_params[2].each do |prescription|
           post_params('prescriptions/create', prescription, bart_url)
         end
+      else
+        puts "params2 empty"
       end
       post_params('programs/update', enc_params[3], bart_url) unless enc_params[3]['observations[]'].empty?
-    rescue
-      log "Failed to import encounter #{row['encounter_id']}"
+
+      puts "params0 empty" if enc_params[3]['observations[]'].empty?
+
+      puts "row#{row['encounter_id']}:#{row.to_csv}"
+      encounter_log = EncounterLog.new(:encounter_id => row['encounter_id'])
+      encounter_log.status = 1
+      encounter_log.description = new_id
+      #encounter_log.save
+    rescue => error
+      log "Failed to import encounter #{row['encounter_id']}. #{error.message}"
+      puts "Failed to import encounter #{row['encounter_id']}. #{error.message}"
+      encounter_log = EncounterLog.new(:encounter_id => row['encounter_id'])
+      encounter_log.status = 0
+      encounter_log.description = error.message
+      #encounter_log.save
     end
   end
 

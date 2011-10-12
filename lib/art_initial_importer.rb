@@ -62,6 +62,7 @@ class ArtInitialImporter < Importer
     enc_params
   end
 
+=begin
   def create_encounter(row, obs_headers, bart_url, post_action)
     encounter_log = EncounterLog.find_by_encounter_id(row['encounter_id'])
 
@@ -70,17 +71,24 @@ class ArtInitialImporter < Importer
       begin
         enc_params = self.params(row, obs_headers)
         if @restful
-          post_params(post_action, enc_params, bart_url)
+          new_id = post_params(post_action, enc_params, bart_url)
         else
-          create_with_params(enc_params)
+          new_id = create_with_params(enc_params)
         end
+
+        encounter_log = EncounterLog.new(:encounter_id => row['encounter_id'])
+        encounter_log.status = 1
+        encounter_log.description = new_id
+        encounter_log.save
       rescue => error
         log "Failed to import encounter #{row['encounter_id']}"
-        encounter_log = Encounter.new(row['encounter_id'])
+        encounter_log = EncounterLog.new(:encounter_id => row['encounter_id'])
         encounter_log.status = 0
-        encounter_log.desc = error.message # exception error msg
+        encounter_log.description = error.message
+        encounter_log.save
       end
     end
   end
-
+=end
+  
 end

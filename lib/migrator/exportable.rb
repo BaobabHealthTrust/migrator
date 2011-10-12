@@ -185,7 +185,7 @@ module Migrator
       elsif @min_time and @max_time
         condition_options = ['encounter_type = ? AND
                               encounter_datetime BETWEEN ? AND ?',
-                             @type_id, @min_date]
+                             @type_id, @min_time, @max_time]
       else
         condition_options = ['encounter_type = ?', @type_id]
       end

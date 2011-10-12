@@ -13,8 +13,7 @@ class EncounterExporter
                  export_dir=nil, min_time=nil, max_time=nil)
     @default_fields = ['patient_id', 'encounter_id', 'workstation',
                        'date_created', 'encounter_datetime', 'provider_id',
-                       'voided', 'voided_by', 'date_voided', 'void_reason'
-                       ]
+                       'voided', 'voided_by', 'date_voided', 'void_reason']
     @_header_concepts = nil
     @concept_map = nil
     @concept_name_map = nil

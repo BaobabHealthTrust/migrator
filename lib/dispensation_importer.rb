@@ -18,7 +18,8 @@ class DispensationImporter < Importer
             :drug_id    => 297, # To check if this is the value that should be posted
             :quantity   => enc_row[question],
             :location => enc_row['workstation'],
-            :imported_date_created=> enc_row['encounter_datetime']
+            :encounter_datetime => enc_row['encounter_datetime'],
+            :imported_date_created=> enc_row['date_created']
           }
           post_params('dispensations/create', enc_params, bart_url)
         rescue
@@ -27,7 +28,7 @@ class DispensationImporter < Importer
       when 'Appointment date'
         begin
           enc_params = self.appointment_params(enc_row)
-          if restful
+          if @restful
             post_params(post_action, enc_params, bart_url)
           else
             create_with_params(enc_params)
@@ -42,11 +43,20 @@ class DispensationImporter < Importer
             :drug_id    => @drug_oldid_newid_map[@drug_name_map[question]],
             :quantity   => enc_row[question],
             :location => enc_row['workstation'],
-            :imported_date_created=> enc_row['encounter_datetime']
+            :encounter_datetime => enc_row['encounter_datetime'],
+            :imported_date_created=> enc_row['date_created']
           }
-          post_params('dispensations/create', enc_params, bart_url)
-        rescue
-          log "Failed to import encounter #{enc_row['encounter_id']}"
+          new_id = post_params('dispensations/create', enc_params, bart_url)
+          encounter_log = EncounterLog.new(:encounter_id => enc_row['encounter_id'])
+          encounter_log.status = 1
+          encounter_log.description = new_id if new_id.class
+          encounter_log.save
+        rescue => error
+          log "Failed to import encounter #{enc_row['encounter_id']}. #{error.message}"
+          encounter_log = EncounterLog.new(:encounter_id => enc_row['encounter_id'])
+          encounter_log.status = 0
+          encounter_log.description = error.message
+          encounter_log.save
         end
       end
     end
