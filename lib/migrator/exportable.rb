@@ -178,16 +178,25 @@ module Migrator
       out_file = self.to_filename(encounter_type.name) + '.csv' unless out_file
       out_file = @export_dir + out_file
       condition_options = []
-      
-      if @patient_list
-        condition_options = ['encounter_type = ? AND patient_id IN (?)',
-                             @type_id, @patient_list]
-      elsif @min_time and @max_time
-        condition_options = ['encounter_type = ? AND
-                              encounter_datetime BETWEEN ? AND ?',
-                             @type_id, @min_time, @max_time]
-      else
-        condition_options = ['encounter_type = ?', @type_id]
+      if @export_type == 'patient' #patient based
+        if @patient_list
+          condition_options = ['encounter_type = ? AND patient_id IN (?)',
+                               @type_id, @patient_list]
+        elsif @min_time and @max_time
+          condition_options = ['encounter_type = ? AND
+                                    encounter_datetime BETWEEN ? AND ?',
+                                   @type_id, @min_time, @max_time]
+        else
+          condition_options = ['encounter_type = ?', @type_id]
+        end
+      else #encounter based
+        if @min_time and @max_time
+          condition_options = ['encounter_type = ? AND
+                                    encounter_datetime BETWEEN ? AND ?',
+                                   @type_id, @min_time, @max_time]
+        else
+          condition_options = ['encounter_type = ?', @type_id]
+        end
       end
       
       FasterCSV.open(out_file, 'w',:headers => self.headers) do |csv|
