@@ -62,7 +62,6 @@ class ArtInitialImporter < Importer
     enc_params
   end
 
-=begin
   def create_encounter(row, obs_headers, bart_url, post_action)
     encounter_log = EncounterLog.find_by_encounter_id(row['encounter_id'])
 
@@ -89,6 +88,5 @@ class ArtInitialImporter < Importer
       end
     end
   end
-=end
   
 end
