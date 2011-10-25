@@ -25,6 +25,16 @@ module Migrator
       enc_params
     end
 
+    #append void_params if the encounter was voided to use for voiding
+    def append_void_params(enc_params, date_voided, void_reason, voiderer)
+      enc_params['encounter']['voided'] = 1
+      enc_params['encounter']['void_reason'] = void_reason
+      enc_params['encounter']['date_voided'] = date_voided
+      enc_params['encounter']['voided_by'] = voiderer
+
+      enc_params
+    end
+
     # Load mapping of old concepts to new ones
     # headers: old_concept_id, new_concept_id[, old_concept_name]
     def load_concepts(file='concept_map.csv')

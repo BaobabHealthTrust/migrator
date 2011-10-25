@@ -11,7 +11,10 @@ class Importer
   def initialize(csv_dir, mapping_file_path, restful=true)
     @default_fields = ['patient_id', 'encounter_id', 'workstation',
                        'date_created', 'encounter_datetime', 'provider_id',
-                       'voided', 'voided_by', 'date_voided', 'void_reason']
+                       'voided_by', 'date_voided', 'void_reason']
+    #removed voided from default fields, so that we should identify voided records when
+    #creating parameters
+
     @_header_concepts = nil
     @concept_map = nil
     @concept_name_map = nil
