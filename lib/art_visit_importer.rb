@@ -46,9 +46,27 @@ class ArtVisitImporter < Importer
       :encounter_datetime => enc_row['encounter_datetime'],
       :imported_date_created => enc_row['date_created']
     }
+    @void_params = {}
 
     obs_headers.each do |question|
       next if enc_row[question].blank?
+
+      if question == 'voided'
+        #append void parameters to the normal params
+        begin
+          voiderer = User.find(enc_row['voided_by']).id rescue 1
+
+          @void_params = {
+            :date_voided => enc_row['date_voided'],
+            :void_reason => enc_row['void_reason'],
+            :voided_by =>  voiderer
+          }
+        rescue
+          log("failed to create void params for #{enc_row['encounter_id']}")
+        end
+      end
+      next if question == 'voided'
+
       concept = Concept.find(@concept_name_map[question]) rescue nil
       next unless concept || exceptional_concepts_array.include?(question)
 
@@ -81,6 +99,12 @@ class ArtVisitImporter < Importer
         rows_array = generate_params_array(quest_params,
                                            enc_row[question].to_s,question.to_s
                                           ) unless enc_row[question].to_s.empty?
+        unless @void_params.blank?
+          av_params = self.append_void_params(av_params,
+                                               @void_params[:date_voided],
+                                               @void_params[:void_reason],
+                                               @void_params[:voided_by])
+        end
         post_destination = 1
       when 'Total number of whole ARV tablets remaining',
            'Whole tablets remaining and brought to clinic',
@@ -96,6 +120,13 @@ class ArtVisitImporter < Importer
         rows_array << element
         }
 
+        unless @void_params.blank?
+          ad_params = self.append_void_params(ad_params,
+                                               @void_params[:date_voided],
+                                               @void_params[:void_reason],
+                                               @void_params[:voided_by])
+        end
+        
         post_destination = 2
       when 'Prescription time period',
            'Prescribe Cotrimoxazole (CPT)',
@@ -113,10 +144,26 @@ class ArtVisitImporter < Importer
       when 	'Continue treatment at current clinic', 'Transfer out destination'
         rows_array = generate_params_array(quest_params,enc_row[question].to_s,
           question.to_s) unless enc_row[question].to_s.empty?
+
+        unless @void_params.blank?
+          outcome_params = self.append_void_params(outcome_params,
+                                               @void_params[:date_voided],
+                                               @void_params[:void_reason],
+                                               @void_params[:voided_by])
+        end
+
         post_destination = 4
       when  'TB status' #Special as this is saving value_coded_or_text in Bart2
         rows_array = get_tb_status(quest_params,
           enc_row[question].to_s) unless enc_row[question].to_s.empty?
+
+        unless @void_params.blank?
+          av_params = self.append_void_params(av_params,
+                                               @void_params[:date_voided],
+                                               @void_params[:void_reason],
+                                               @void_params[:voided_by])
+        end
+
         post_destination = 1
       end
 

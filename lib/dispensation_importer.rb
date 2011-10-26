@@ -2,8 +2,25 @@
 class DispensationImporter < Importer
 
   def create_encounter(enc_row, obs_headers, bart_url, post_action)
+    @void_params = {}
     obs_headers.each do |question|
       next unless enc_row[question]
+
+      if question == 'voided'
+        #append void parameters to the normal params
+        begin
+          voiderer = User.find(enc_row['voided_by']).id rescue 1
+
+          @void_params = {
+            :date_voided => enc_row['date_voided'],
+            :void_reason => enc_row['void_reason'],
+            :voided_by =>  voiderer
+          }
+        rescue
+          log("failed to create void params for #{enc_row['encounter_id']}")
+        end
+      end
+      next if question == 'voided'
 
       enc_params = {}
 
@@ -21,6 +38,14 @@ class DispensationImporter < Importer
             :encounter_datetime => enc_row['encounter_datetime'],
             :imported_date_created=> enc_row['date_created']
           }
+
+          unless @void_params.blank?
+            enc_params = self.append_void_params(enc_params,
+                                               @void_params[:date_voided],
+                                               @void_params[:void_reason],
+                                               @void_params[:voided_by])
+          end
+
           post_params('dispensations/create', enc_params, bart_url)
         rescue
            log "Failed to import encounter #{enc_row['encounter_id']}"
@@ -28,6 +53,14 @@ class DispensationImporter < Importer
       when 'Appointment date'
         begin
           enc_params = self.appointment_params(enc_row)
+
+          unless @void_params.blank?
+            enc_params = self.append_void_params(enc_params,
+                                               @void_params[:date_voided],
+                                               @void_params[:void_reason],
+                                               @void_params[:voided_by])
+          end
+
           if @restful
             post_params(post_action, enc_params, bart_url)
           else
@@ -46,6 +79,14 @@ class DispensationImporter < Importer
             :encounter_datetime => enc_row['encounter_datetime'],
             :imported_date_created=> enc_row['date_created']
           }
+
+          unless @void_params.blank?
+            enc_params = self.append_void_params(enc_params,
+                                               @void_params[:date_voided],
+                                               @void_params[:void_reason],
+                                               @void_params[:voided_by])
+          end
+
           new_id = post_params('dispensations/create', enc_params, bart_url)
           encounter_log = EncounterLog.new(:encounter_id => enc_row['encounter_id'])
           encounter_log.status = 1
