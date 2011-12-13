@@ -142,6 +142,16 @@ module Migrator
           end
         end
       end
+
+      if encounter.encounter_type == EncounterType.find_by_name('HIV Staging'
+                                                               ).encounter_type_id
+        reason_concept = encounter.patient.reason_for_art_eligibility
+        reason_concept = Concept.find_by_name('Unknown') unless reason_concept
+      
+        # for HIV Staging, last column is 'Reason antiretrovirals started'
+        row[self.headers.length-1] = reason_concept.concept_id
+      end
+
       # Export drug orders for Give drugs encounters
       encounter_type = EncounterType.find(@type_id)
       if encounter_type.name == 'Give drugs'

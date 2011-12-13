@@ -21,10 +21,16 @@ class HivStagingImporter < Importer
         rescue
           log("failed to create void params for #{enc_row['encounter_id']}")
         end
+
+        next
       end
-      next if question == 'voided'
       
-      concept = Concept.find(@concept_name_map[question]) rescue nil
+      if question == 'Reason antiretrovirals started'
+        concept = ConceptName.find_by_name('Reason antiretrovirals started').concept
+      else
+        concept = Concept.find(@concept_name_map[question]) rescue nil
+      end
+
       next unless concept
 
       quest_params = {
@@ -42,8 +48,8 @@ class HivStagingImporter < Importer
       when "CLINICAL NOTES CONSTRUCT"
         quest_params[:value_text]     = enc_row[question]
       when "Reason antiretrovirals started"
-        patient = Patient.find(enc_row['patient_id'])
-        quest_params[:value_coded_or_text] = patient.reason_for_art_eligibility.concept_id
+        answer = @concept_map[enc_row[question]]
+        quest_params[:value_coded] = answer
       else
         begin
           answer = @concept_map[enc_row[question].split(':').first]
