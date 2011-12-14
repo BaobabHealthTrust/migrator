@@ -26,7 +26,7 @@ class HivStagingImporter < Importer
       end
       
       if question == 'Reason antiretrovirals started'
-        concept = ConceptName.find_by_name('Reason antiretrovirals started').concept
+        concept = ConceptName.find_by_name('REASON FOR ART ELIGIBILITY').concept
       else
         concept = Concept.find(@concept_name_map[question]) rescue nil
       end
