@@ -75,7 +75,9 @@ class ArtVisitImporter < Importer
           :patient_id => enc_row['patient_id'],
           :concept_name => concept.fullname,
           :obs_datetime => enc_row['encounter_datetime'],
-          :location_id => enc_row['location_id']
+          :location_id => enc_row['workstation'],
+          :value_coded => '',
+          :value_coded_or_text => ''
         }
       end
 
