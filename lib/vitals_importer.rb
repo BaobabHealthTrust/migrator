@@ -86,7 +86,9 @@ class VitalsImporter < Importer
           :obs_datetime => enc_row['encounter_datetime']
         }
 
-        bmi_params[:value_numeric]  = (@currentWeight/(@currentHeight*@currentHeight)*10000.0).round(1)
+        bmi_params[:value_numeric] = (@currentWeight /
+                                      (@currentHeight*@currentHeight) * 10000.0
+                                     ).round(1)
         enc_params['observations[]'] << bmi_params
       end
     end
