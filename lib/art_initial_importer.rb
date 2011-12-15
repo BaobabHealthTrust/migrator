@@ -46,7 +46,11 @@ class ArtInitialImporter < Importer
       quest_params = {
         :patient_id =>  enc_row['patient_id'],
         :concept_name => concept.fullname,
-        :obs_datetime => enc_row['encounter_datetime']
+        :obs_datetime => enc_row['encounter_datetime'],
+        :value_datetime => '',
+        :value_numeric => '',
+        :value_text => '',
+        :value_coded_or_text => ''
       }
 
       case question

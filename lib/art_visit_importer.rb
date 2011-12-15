@@ -77,7 +77,8 @@ class ArtVisitImporter < Importer
           :obs_datetime => enc_row['encounter_datetime'],
           :location_id => enc_row['workstation'],
           :value_coded => '',
-          :value_coded_or_text => ''
+          :value_coded_or_text => '',
+          :value_coded_or_text_multiple => ''
         }
       end
 

@@ -29,7 +29,8 @@ class VitalsImporter < Importer
       quest_params = {
         :patient_id =>  enc_row['patient_id'],
         :concept_name => concept.fullname,
-        :obs_datetime => enc_row['encounter_datetime']
+        :obs_datetime => enc_row['encounter_datetime'],
+        :value_numeric => ''
       }
 
       case question
@@ -78,14 +79,14 @@ class VitalsImporter < Importer
         enc_params['observations[]'] << weightforheight_params
 
 
-      else #calculate BMI
+      elsif @currentHeight > 0 #calculate BMI
         bmi_params = {
           :patient_id =>  enc_row['patient_id'],
           :concept_name => Concept.find_by_name("BMI").fullname,
           :obs_datetime => enc_row['encounter_datetime']
         }
 
-        bmi_params[:value_numeric]  = (@currentWeight/(@currentHeight*@currentHeight)*10000.0).round(1) unless @currentHeight < 1
+        bmi_params[:value_numeric]  = (@currentWeight/(@currentHeight*@currentHeight)*10000.0).round(1)
         enc_params['observations[]'] << bmi_params
       end
     end
