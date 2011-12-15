@@ -2,11 +2,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{migrator}
-  s.version = "0.2.2"
+  s.version = "0.2.3"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 1.2") if s.respond_to? :required_rubygems_version=
   s.authors = ["Baobab Health"]
-  s.date = %q{2011-12-13}
+  s.date = %q{2011-12-14}
   s.description = %q{Migrate BART patient visit information}
   s.email = %q{developers@baobabhealth.org}
   s.extra_rdoc_files = ["LICENSE", "README.rdoc", "lib/art_initial_importer.rb",
