@@ -47,8 +47,8 @@ class VitalsImporter < Importer
     
     unless @currentHeight.blank? || @currentWeight.blank?
       @patient = Patient.find(enc_row['patient_id'])
-      if @patient.person.age.to_i < 15 #obs_headers.include?'Paediatric growth indicators' #calculate paediatric growth indicators
-       age_in_months = @patient.person.age_in_months
+      if PatientService.age(@patient.person).to_i < 15 #obs_headers.include?'Paediatric growth indicators' #calculate paediatric growth indicators
+       age_in_months = PatientService.age_in_months(@patient.person)
        gender = @patient.person.gender
        medianweightheight = WeightHeightForAge.median_weight_height(age_in_months, gender).join(',') #rescue nil
        currentweightpercentile = (@currentWeight/(medianweightheight[0])*100).round(0)
