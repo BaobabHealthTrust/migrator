@@ -54,7 +54,7 @@ class HivStagingImporter < Importer
         quest_params[:value_text]     = enc_row[question]
       when "Reason antiretrovirals started"
         answer = @concept_map[enc_row[question]]
-        quest_params[:value_coded] = answer
+        quest_params[:value_coded_or_text] = Concept.find(answer).fullname rescue nil
       else
         begin
           answer = @concept_map[enc_row[question].split(':').first]
