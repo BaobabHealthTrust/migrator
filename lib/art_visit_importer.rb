@@ -78,7 +78,7 @@ class ArtVisitImporter < Importer
           :location_id => enc_row['workstation'],
           :value_coded => '',
           :value_coded_or_text => '',
-          :value_coded_or_text_multiple => ''
+          :value_coded_or_text_multiple => []
         }
       end
 
