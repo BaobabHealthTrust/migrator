@@ -57,11 +57,26 @@ class OutcomeImporter < Importer
   end
 
   def create_encounter(row, obs_headers, bart_url, post_action)
-    begin
-      enc_params = params(row,obs_headers)
-      post_params('programs/update',enc_params,bart_url) if @skip_record == false
-    rescue
-      log "Failed to import encounter #{row['encounter_id']}"
+    encounter_log = EncounterLog.find_by_encounter_id(row['encounter_id'])
+
+    # skip successfully imported encounters
+    if encounter_log.nil? or encounter_log.status != 1
+      begin
+        enc_params = params(row,obs_headers)
+        if @skip_record == false
+          post_params('programs/update',enc_params,bart_url)
+          encounter_log = EncounterLog.new(:encounter_id => row['encounter_id'])
+          encounter_log.status = 1
+          encounter_log.description = 'outcome: programs/update'
+          encounter_log.save
+        end
+      rescue => error
+        log "Failed to import encounter #{row['encounter_id']}"
+        encounter_log = EncounterLog.new(:encounter_id => row['encounter_id'])
+        encounter_log.status = 0
+        encounter_log.description = "outcome encounter: #{error.message}"
+        encounter_log.save
+      end
     end
   end
 
