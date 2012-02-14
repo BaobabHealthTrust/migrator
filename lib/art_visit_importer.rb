@@ -260,7 +260,11 @@ class ArtVisitImporter < Importer
       all_fields_array = split_string(row_value,';') #split the rows into an array of fields (separated by ';')
       all_fields_array.each do |field|
         field_value_pair = split_string(field,'-') #split the fields into 'field_name' and 'value' (separated by '-')
-        generated_parameters[:"#{field_value_pair[0]}"] = field_value_pair[1]
+        if field_value_pair[0] == 'value_coded'
+          generated_parameters[:"#{field_value_pair[0]}"] = @concept_map[field_value_pair[1].to_i]
+        else
+          generated_parameters[:"#{field_value_pair[0]}"] = field_value_pair[1]
+        end
       end
       case header_column
       when 'Continue treatment at current clinic', 'Transfer out destination'
