@@ -23,6 +23,7 @@ class ArtVisitImporter < Importer
                                   'Prescribed dose']
 
     av_params = init_params(enc_row, 'ART VISIT')
+    tr_params = init_params(enc_row, 'TREATMENT')
     ad_params = init_params(enc_row, 'ART ADHERENCE')
     outcome_params = init_params(enc_row, 'UPDATE OUTCOME')
 
@@ -93,7 +94,7 @@ class ArtVisitImporter < Importer
       case question
       when 'Hepatitis',
           'Refer patient to clinician', 'Weight loss',
-          'Leg pain / numbness', 'Vomit', 'Jaundice','ARV regimen',
+          'Leg pain / numbness', 'Vomit', 'Jaundice',
           'Is able to walk unaided', 'Is at work/school', 'Weight', 'Pregnant',
           'Other side effect', 'Continue ART',
           'Moderate unexplained wasting / malnutrition not responding to treatment (weight-for-height/ -age 70-79% or MUAC 11-12cm)',
@@ -109,6 +110,18 @@ class ArtVisitImporter < Importer
                                                @void_params[:voided_by])
         end
         post_destination = 1
+      when 'ARV regimen'
+        rows_array = generate_params_array(quest_params,
+                                           enc_row[question].to_s,question.to_s
+                                          ) unless enc_row[question].to_s.empty?
+        unless @void_params.blank?
+          tr_params = self.append_void_params(tr_params,
+                                               @void_params[:date_voided],
+                                               @void_params[:void_reason],
+                                               @void_params[:voided_by])
+        end
+        post_destination = 3
+
       when 'Total number of whole ARV tablets remaining',
            'Whole tablets remaining and brought to clinic',
            'Whole tablets remaining but not brought to clinic'
@@ -191,6 +204,8 @@ class ArtVisitImporter < Importer
           av_params['observations[]'] << row_params
         elsif post_destination == 2
           ad_params['observations[]'] << row_params
+        elsif post_destination == 3
+          tr_params['observations[]'] << row_params
         elsif post_destination == 4
           outcome_params['observations[]'] << row_params
         end
@@ -236,6 +251,7 @@ class ArtVisitImporter < Importer
 
     params_array << av_params
     params_array << ad_params
+    params_array << tr_params
     params_array << prescription_params_array
     outcome_params[:patient_program_id] = outcome_params["observations[]"][0][:patient_program_id] rescue nil
     outcome_params[:current_date] = outcome_params["observations[]"][0][:obs_datetime] rescue nil
@@ -261,7 +277,7 @@ class ArtVisitImporter < Importer
       all_fields_array.each do |field|
         field_value_pair = split_string(field,'-') #split the fields into 'field_name' and 'value' (separated by '-')
         if field_value_pair[0] == 'value_coded'
-          generated_parameters[:"#{field_value_pair[0]}"] = @concept_map[field_value_pair[1].to_i]
+          generated_parameters[:"#{field_value_pair[0]}"] = @concept_map[field_value_pair[1]]
         else
           generated_parameters[:"#{field_value_pair[0]}"] = field_value_pair[1]
         end
@@ -410,22 +426,24 @@ class ArtVisitImporter < Importer
           #post params if an item in enc_params have observations
           new_id = post_params(post_action, enc_params[0], bart_url) unless enc_params[0]['observations[]'].empty?
           post_params(post_action, enc_params[1], bart_url) unless enc_params[1]['observations[]'].empty?
+          post_params(post_action, enc_params[2], bart_url) unless enc_params[2]['observations[]'].empty?
         else
           new_id = create_with_params(enc_params[0]) unless enc_params[0]['observations[]'].empty?
           create_with_params(enc_params[1]) unless enc_params[1]['observations[]'].empty?
+          create_with_params(enc_params[2]) unless enc_params[2]['observations[]'].empty?
         end
 
         #puts "params0 empty" if enc_params[0]['observations[]'].empty?
         #puts "params1 empty" if enc_params[1]['observations[]'].empty?
 
-        unless enc_params[2].empty?
-          enc_params[2].each do |prescription|
+        unless enc_params[3].empty?
+          enc_params[3].each do |prescription|
             post_params('prescriptions/create', prescription, bart_url)
           end
         else
-          puts "params2 empty -- no prescriptions for encounter: #{row['encounter_id']}"
+          puts "params3 empty -- no prescriptions for encounter: #{row['encounter_id']}"
         end
-        post_params('programs/update', enc_params[3], bart_url) unless enc_params[3]['observations[]'].empty?
+        post_params('programs/update', enc_params[4], bart_url) unless enc_params[4]['observations[]'].empty?
 
         encounter_log = EncounterLog.new(:encounter_id => row['encounter_id'])
         encounter_log.status = 1
