@@ -39,6 +39,8 @@ class DispensationImporter < Importer
             :imported_date_created=> enc_row['date_created']
           }
 
+          enc_params['encounter'] = {}
+
           unless @void_params.blank?
             enc_params = self.append_void_params(enc_params,
                                                @void_params[:date_voided],
@@ -79,6 +81,8 @@ class DispensationImporter < Importer
             :encounter_datetime => enc_row['encounter_datetime'],
             :imported_date_created=> enc_row['date_created']
           }
+
+          enc_params['encounter'] = {}
 
           unless @void_params.blank?
             enc_params = self.append_void_params(enc_params,
@@ -123,6 +127,7 @@ class DispensationImporter < Importer
       }
       enc_params[:time_until_next_visit] = (appointment_date - visit_date.to_date).to_i/7
     end
+    enc_params['encounter'] = {}
     enc_params
   end
 
