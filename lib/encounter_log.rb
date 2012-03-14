@@ -3,7 +3,7 @@
 class EncounterLog < ActiveRecord::Base
 
   set_table_name 'encounter_log'
-  attr_accessible :encounter_id, :status, :description
+  attr_accessible :encounter_id, :status, :description, :patient_id
 
   def self.create_table
     sql = "CREATE TABLE encounter_log (
