@@ -9,6 +9,7 @@ class EncounterLog < ActiveRecord::Base
     sql = "CREATE TABLE encounter_log (
       id int(11) NOT NULL AUTO_INCREMENT,
       encounter_id int(11) NOT NULL DEFAULT 0,
+      patient_id int(11) NOT NULL DEFAULT 0,
       status int(1) NOT NULL DEFAULT 0,
       description VARCHAR(255) DEFAULT NULL,
       PRIMARY KEY (`id`),

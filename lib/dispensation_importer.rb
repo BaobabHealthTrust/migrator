@@ -94,12 +94,14 @@ class DispensationImporter < Importer
           new_id = post_params('dispensations/create', enc_params, bart_url)
           encounter_log = EncounterLog.new(:encounter_id => enc_row['encounter_id'])
           encounter_log.status = 1
+          encounter_log.patient_id = enc_row['patient_id']
           encounter_log.description = new_id if new_id.class
           encounter_log.save
         rescue => error
           log "Failed to import encounter #{enc_row['encounter_id']}. #{error.message}"
           encounter_log = EncounterLog.new(:encounter_id => enc_row['encounter_id'])
           encounter_log.status = 0
+          encounter_log.patient_id = enc_row['patient_id']
           encounter_log.description = error.message
           encounter_log.save
         end

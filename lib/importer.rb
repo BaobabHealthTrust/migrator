@@ -40,12 +40,14 @@ class Importer
 
         encounter_log = EncounterLog.new(:encounter_id => row['encounter_id'])
         encounter_log.status = 1
+        encounter_log.patient_id = row['patient_id']
         encounter_log.description = new_id
         encounter_log.save
       rescue => error
         log "Failed to import encounter #{row['encounter_id']}. #{error.message}"
         encounter_log = EncounterLog.new(:encounter_id => row['encounter_id'])
         encounter_log.status = 0
+        encounter_log.patient_id = row['patient_id']
         encounter_log.description = error.message
         encounter_log.save
       end

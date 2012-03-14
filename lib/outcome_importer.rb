@@ -67,6 +67,7 @@ class OutcomeImporter < Importer
           post_params('programs/update',enc_params,bart_url)
           encounter_log = EncounterLog.new(:encounter_id => row['encounter_id'])
           encounter_log.status = 1
+          encounter_log.patient_id = row['patient_id']
           encounter_log.description = 'outcome: programs/update'
           encounter_log.save
         end
@@ -74,6 +75,7 @@ class OutcomeImporter < Importer
         log "Failed to import encounter #{row['encounter_id']}"
         encounter_log = EncounterLog.new(:encounter_id => row['encounter_id'])
         encounter_log.status = 0
+        encounter_log.patient_id = row['patient_id']
         encounter_log.description = "outcome encounter: #{error.message}"
         encounter_log.save
       end
