@@ -91,6 +91,8 @@ module Migrator
 
     def post_params(post_action, enc_params, bart_url)
       #begin
+        # added authorisation token to the parameters
+        enc_params[:auth_token] = @auth_token
         RestClient.post("http://#{bart_url}/#{post_action}",
                         enc_params)
       #rescue Exception => e
