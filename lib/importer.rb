@@ -8,7 +8,7 @@ class Importer
 
   include Migrator::Importable
 
-  def initialize(csv_dir, mapping_file_path, restful=true)
+  def initialize(csv_dir, mapping_file_path, auth_token, restful=true)
     @default_fields = ['patient_id', 'encounter_id', 'workstation',
                        'date_created', 'encounter_datetime', 'provider_id',
                        'voided_by', 'date_voided', 'void_reason']
@@ -21,6 +21,7 @@ class Importer
     @csv_dir = csv_dir + '/'
     @mapping_file_path = mapping_file_path + '/'
     @restful = restful
+    @auth_token = auth_token
 
     @logger = Logger.new(STDOUT)
   end
