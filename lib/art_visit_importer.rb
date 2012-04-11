@@ -21,8 +21,8 @@ class ArtVisitImporter < Importer
                                   'Stavudine dosage',
                                   'Provider shown patient BMI',
                                   'Prescribed dose']
-
-    av_params = init_params(enc_row, 'ART VISIT')
+    #changed the encounter type from art visit to hiv clinic consultation in the line below
+    av_params = init_params(enc_row, 'HIV CLINIC CONSULTATION')
     tr_params = init_params(enc_row, 'TREATMENT')
     ad_params = init_params(enc_row, 'ART ADHERENCE')
     outcome_params = init_params(enc_row, 'UPDATE OUTCOME')

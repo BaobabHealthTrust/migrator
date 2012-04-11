@@ -3,7 +3,7 @@ class ArtInitialImporter < Importer
 
   # Create HIV Reception Params from a CSV Encounter row
   def params(enc_row, obs_headers=nil)
-    type_name = 'ART_Initial'
+    type_name = 'HIV CLINIC REGISTRATION'
     enc_params = init_params(enc_row, type_name)
 
     unless obs_headers
