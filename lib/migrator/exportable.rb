@@ -199,7 +199,7 @@ module Migrator
         else
           condition_options = ['encounter_type = ?', @type_id]
         end
-      else #encounter based
+      elsif @export_type == "all_encounters" #encounter based
         if @min_time and @max_time
           condition_options = ['encounter_type = ? AND
                                     encounter_datetime BETWEEN ? AND ?',
@@ -207,6 +207,9 @@ module Migrator
         else
           condition_options = ['encounter_type = ?', @type_id]
         end
+      else # patient_encounters (rather say selected encounters)
+        condition_options = ['encounter_type = ? AND encounter_id IN (?)',
+                            @type_id, @patient_list ]
       end
       
       FasterCSV.open(out_file, 'w',:headers => self.headers) do |csv|
