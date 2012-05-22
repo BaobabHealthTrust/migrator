@@ -157,14 +157,31 @@ module Migrator
       if encounter_type.name == 'Give drugs'
         # order.voided, order.voided_by, order.date.voided
         # drug_order.drug_inventory_id, drug_order.quantity
-        orders = Order.all(
-            :select => 'orders.*, drug_order.drug_inventory_id,
-                        SUM(drug_order.quantity) AS total_qty',
-            :conditions => ['orders.encounter_id = ?', encounter.id],
-            :joins => [:drug_orders, :encounter],
-            :group => 'orders.encounter_id, drug_order.drug_inventory_id',
-            :order => 'drug_inventory_id')
-        set_void_info(orders.first) if void_info.blank?
+        # added the query to select individual drug orders
+        
+        if @drug_order_export_table != nil
+          orders = Order.find_by_sql("SELECT orders.*,
+                                          drug_order.drug_inventory_id,
+                                          SUM(drug_order.quantity) AS total_qty
+                                      FROM #{@drug_order_export_table} orders
+                                       INNER JOIN drug_order drug_order
+                                          ON orders.order_id = drug_order.order_id
+                                      WHERE orders.encounter_id = #{encounter.id}
+                                      GROUP BY orders.encounter_id, drug_order.drug_inventory_id
+                                      ORDER BY drug_order.drug_inventory_id")
+        else
+          orders = Order.all(
+              :select => 'orders.*, drug_order.drug_inventory_id,
+                          SUM(drug_order.quantity) AS total_qty',
+              :conditions => ['orders.encounter_id = ?', encounter.id],
+              :joins => [:drug_orders, :encounter],
+              :group => 'orders.encounter_id, drug_order.drug_inventory_id',
+              :order => 'drug_inventory_id')
+
+          set_void_info(orders.first) if void_info.blank?
+        end
+        
+        
         orders.each do |o|
           row[@header_col["drug_#{o.drug_inventory_id}"]] = o.total_qty
         end

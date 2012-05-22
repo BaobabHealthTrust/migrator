@@ -10,7 +10,8 @@ class EncounterExporter
   include Migrator::Exportable
 
   def initialize(csv_dir, encounter_type_id=nil, limit=10, patient_list=nil,
-                 export_dir=nil, min_time=nil, max_time=nil,export_type=nil)
+                 export_dir=nil, min_time=nil, max_time=nil,export_type=nil,
+                drug_order_export_table=nil)
     @default_fields = ['patient_id', 'encounter_id', 'workstation',
                        'date_created', 'encounter_datetime', 'provider_id',
                        'voided', 'voided_by', 'date_voided', 'void_reason']
@@ -28,6 +29,7 @@ class EncounterExporter
     @header_col = {}
     
     @export_type = export_type
+    @drug_order_export_table = drug_order_export_table
 
   end
 
