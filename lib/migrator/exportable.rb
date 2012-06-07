@@ -159,7 +159,7 @@ module Migrator
         # drug_order.drug_inventory_id, drug_order.quantity
         # added the query to select individual drug orders
         
-        if @drug_order_export_table != nil
+        if @drug_order_export_table != nil && @export_type.to_s.downcase == "patient_encounters"
           orders = Order.find_by_sql("SELECT orders.*,
                                           drug_order.drug_inventory_id,
                                           SUM(drug_order.quantity) AS total_qty
@@ -169,6 +169,8 @@ module Migrator
                                       WHERE orders.encounter_id = #{encounter.id}
                                       GROUP BY orders.encounter_id, drug_order.drug_inventory_id
                                       ORDER BY drug_order.drug_inventory_id")
+          
+          set_void_info(orders.first) if void_info.blank?
         else
           orders = Order.all(
               :select => 'orders.*, drug_order.drug_inventory_id,
