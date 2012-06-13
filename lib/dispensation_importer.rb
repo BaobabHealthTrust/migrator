@@ -135,7 +135,7 @@ class DispensationImporter < Importer
       }
       enc_params[:time_until_next_visit] = (appointment_date - visit_date.to_date).to_i/7
     end
-    enc_params['encounter'] = {}
+    #enc_params['encounter'] = {}
     enc_params
   end
 
