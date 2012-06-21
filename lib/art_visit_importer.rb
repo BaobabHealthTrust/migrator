@@ -11,9 +11,10 @@ class ArtVisitImporter < Importer
     prescription_params_array = []
     # initialise an array of symptoms as in Bart 2
     concepts_array = ['ABDOMINAL PAIN', 'ANOREXIA', 'COUGH','DIARRHEA','FEVER',
-                      'ANEMIA', 'LACTIC ACIDOSIS', 'LIPODYSTROPHY', 'SKIN RASH',
-                      'OTHER SYMPTOMS']
-    effects_array = ['SKIN RASH','PERIPHERAL NEUROPATHY']
+                      'ANEMIA', 'LACTIC ACIDOSIS', 'LIPODYSTROPHY',
+                      'PERIPHERAL NEUROPATHY','LEG PAIN / NUMBNESS','HEPATITIS',
+                      'SKIN RASH','JAUNDICE','OTHER SYMPTOMS']
+  
     exceptional_concepts_array = ['Prescription time period', 
                                   'Prescribe Cotrimoxazole (CPT)',
                                   'Prescribe Insecticide Treated Net (ITN)',
@@ -92,7 +93,7 @@ class ArtVisitImporter < Importer
       post_destination = 0
 
       case question
-      when 'Hepatitis',
+      when'Hepatitis',
           'Refer patient to clinician', 'Weight loss',
           'Leg pain / numbness', 'Vomit', 'Jaundice',
           'Is able to walk unaided', 'Is at work/school', 'Weight', 'Pregnant',
@@ -182,22 +183,25 @@ class ArtVisitImporter < Importer
 
         post_destination = 1
       end
-
+      
       #Check if the symptom exists in the concepts_array
       if concepts_array.include?(question.upcase)
-        unless enc_row[question].to_s.empty? #  TODO
-          symptoms_array << question
-        end
-      end
-
-      #Check if the symptom exists in the effects_array
-      if effects_array.include?(question.upcase)
         unless enc_row[question].to_s.empty?
-          adverse_effects_array << question
+          
+          rows_array = generate_params_array(quest_params,enc_row[question].to_s,question.to_s)
+          rows_array.each do |element|
+          if element[:value_coded] == Concept.find_by_name("Yes drug induced").concept_id
+                  adverse_effects_array << question         
+          elsif element[:value_coded] == Concept.find_by_name("Yes").concept_id ||
+                element[:value_coded] == Concept.find_by_name("Yes not drug induced").concept_id ||
+                element[:value_coded] == Concept.find_by_name("Yes unknown cause").concept_id
+                  symptoms_array << question
+          end 
         end
+       end
       end
-
-
+      
+      
       #post the question to the right params holder
       rows_array.each do |row_params|
         if post_destination == 1
@@ -224,7 +228,7 @@ class ArtVisitImporter < Importer
     unless adverse_effects_array.empty?
       adverse_effects_params = {
         :patient_id =>  enc_row['patient_id'],
-        :concept_name => Concept.find_by_name('ADVERSE EFFECT').fullname.upcase,
+        :concept_name => Concept.find_by_name('DRUG INDUCED').fullname.upcase,
         :obs_datetime => enc_row['encounter_datetime'],
         :value_coded_or_text_multiple => adverse_effects_array
       }
