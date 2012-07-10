@@ -126,17 +126,23 @@ class ArtVisitImporter < Importer
       when 'Total number of whole ARV tablets remaining',
            'Whole tablets remaining and brought to clinic',
            'Whole tablets remaining but not brought to clinic'
-        rows_array_raw = generate_params_array(quest_params,
-                                           enc_row[question].to_s,question.to_s
+        rows_array_raw = generate_drug_params_array(enc_row[question].to_s
                                           ) unless enc_row[question].to_s.empty?
         rows_array = []
-        rows_array_raw.each{ | element|
-          if element[:value_drug]
-            element[:value_drug] = @drug_oldid_newid_map[element[:value_drug]]
-          end
-        rows_array << element
+        rows_array_raw.each{ |element|
+          
+          adherence_obs_params = {
+              :patient_id => enc_row['patient_id'],
+              :concept_name => concept.fullname,
+              :obs_datetime => enc_row['encounter_datetime'],
+              :location_id => enc_row['workstation'],
+              :value_drug => @drug_oldid_newid_map[element[:value_drug]], 
+              :value_numeric => element[:value_numeric]
+              }
+          
+          rows_array << adherence_obs_params             
         }
-
+          
         unless @void_params.blank?
           ad_params = self.append_void_params(ad_params,
                                                @void_params[:date_voided],
@@ -190,11 +196,11 @@ class ArtVisitImporter < Importer
           
           rows_array = generate_params_array(quest_params,enc_row[question].to_s,question.to_s)
           rows_array.each do |element|
-          if element[:value_coded] == Concept.find_by_name("Yes drug induced").concept_id
+          if element[:value_coded] == @concept_name_map["Yes drug induced"]
                   adverse_effects_array << question         
-          elsif element[:value_coded] == Concept.find_by_name("Yes").concept_id ||
-                element[:value_coded] == Concept.find_by_name("Yes not drug induced").concept_id ||
-                element[:value_coded] == Concept.find_by_name("Yes unknown cause").concept_id
+          elsif element[:value_coded] == @concept_name_map["Yes"] ||
+                element[:value_coded] == @concept_name_map["Yes not drug induced"] ||
+                element[:value_coded] == @concept_name_map["Yes unknown cause"]
                   symptoms_array << question
           end 
         end
@@ -295,7 +301,25 @@ class ArtVisitImporter < Importer
     end
     return return_array
   end
+  
+  #Added this specially for the pill count 
 
+  def generate_drug_params_array(column_string)
+    return_array = []
+
+    all_rows_array = split_string(column_string,':') #split the column_string into rows (separated by ':')
+    all_rows_array.each do |row_value|
+      drug_count_pair= {:value_drug => 0, :value_numeric => 0}
+      all_fields_array = split_string(row_value,';') #split the rows into an array of fields (separated by ';')
+      all_fields_array.each do |field|
+        field_value_pair = split_string(field,'-') #split the fields into 'field_name' and 'value' (separated by '-')   
+        drug_count_pair[:"#{field_value_pair[0]}"] = field_value_pair[1]
+      end
+      return_array << drug_count_pair #add to the array of drug value_numeric pair
+    end
+    return return_array
+  end
+  
   def get_tb_status(question_parameters, column_string)
     return_array = []
     generated_parameters = question_parameters
