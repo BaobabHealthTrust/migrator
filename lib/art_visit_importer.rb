@@ -335,9 +335,9 @@ class ArtVisitImporter < Importer
         when 479
           generated_parameters[:value_coded_or_text] = "TB SUSPECTED"
         when 478
-          generated_parameters[:value_coded_or_text] = "CONFIRMED TB NOT ON TREATMENT"
-        when 477
           generated_parameters[:value_coded_or_text] = "CONFIRMED TB ON TREATMENT"
+        when 477
+          generated_parameters[:value_coded_or_text] = "CONFIRMED TB NOT ON TREATMENT"
         when 2
           generated_parameters[:value_coded_or_text] = "UNKNOWN"
         end
